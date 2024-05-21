@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 // Conexão com o banco de dados
-const sequelize = new sequelize('estacionamento', 'root', 'root', {
+const sequelize = new Sequelize('estacionamento', 'root', 'root', {
     host: "localhost",
     port: "3306",
     dialect: 'mysql'

@@ -15,6 +15,6 @@ const Proprietario = db.sequelize.define('proprietario', {
     }
 }, { freezeTableName: true });
 
-Proprietario.sync({force: true});
+//Proprietario.sync({force: true});
 
 module.exports = Proprietario;
