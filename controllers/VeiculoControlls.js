@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const jwt = require('jsonwebtoken');
 const Veiculo = require('../models/Veiculo');
 
 const router = express.Router();
@@ -14,11 +15,19 @@ const limiter = rateLimit({
 });
 router.use(limiter);
 
-// Middleware de autenticação (exemplo)
+// Middleware de autenticação 
 const authenticate = (req, res, next) => {
-    // Implementar lógica de autenticação aqui
-    // Por exemplo, verificar um token JWT
-    next();
+    const token = req.header('Authorization') && req.header('Authorization').split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ message: 'Access denied. No token provided.' });
+    }
+    try {
+        const decoded = jwt.verify(token, 'your_jwt_secret'); // Substitua 'your_jwt_secret' pela sua chave secreta
+        req.user = decoded;
+        next();
+    } catch (ex) {
+        res.status(400).json({ message: 'Invalid token.' });
+    }
 };
 
 // Middleware de validação de entrada
@@ -40,13 +49,13 @@ const validate = (req, res, next) => {
 };
 
 // Busca Veiculo (GET)
-router.get('/', authenticate, async (req, res) => {
+router.get('/', /*authenticate,*/ async (req, res) => {
     const veiculos = await Veiculo.findAll();
     res.status(200).json(veiculos);
 });
 
 // Cadastra Veiculo (POST)
-router.post('/', authenticate, veiculoValidationRules(), validate, async (req, res) => {
+router.post('/', /*authenticate,*/ veiculoValidationRules(), validate, async (req, res) => {
     const { placa, ano, mensalidade, fk_proprietario } = req.body;
     const newEdit = await Veiculo.create({
         placa, ano, mensalidade, fk_proprietario
@@ -55,7 +64,7 @@ router.post('/', authenticate, veiculoValidationRules(), validate, async (req, r
 });
 
 // Busca Por id a Veiculo (GET)
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', /*authenticate,*/ async (req, res) => {
     const veiculo = await Veiculo.findByPk(req.params.id);
     if (!veiculo) {
         return res.status(404).json({ message: 'Veículo não encontrado' });
@@ -64,7 +73,7 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 // Deleta Veiculo por id (DELETE)
-router.delete('/:id', authenticate, async (req, res) => {
+router.delete('/:id', /*authenticate,*/ async (req, res) => {
     const result = await Veiculo.destroy({
         where: { id_veiculo: req.params.id },
     });
@@ -75,7 +84,7 @@ router.delete('/:id', authenticate, async (req, res) => {
 });
 
 // Altera Veiculo por ID (PUT)
-router.put('/:id', authenticate, veiculoValidationRules(), validate, async (req, res) => {
+router.put('/:id', /*authenticate,*/ veiculoValidationRules(), validate, async (req, res) => {
     const { placa, ano, mensalidade, fk_proprietario } = req.body;
     const result = await Veiculo.update(
         { placa, ano, mensalidade, fk_proprietario },
